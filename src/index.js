@@ -24,6 +24,9 @@ const lightbox = new SimpleLightbox('.gallery a');
 form.addEventListener('submit', handleSearch);
 
 async function handleSearch(event) {
+  event.preventDefault();
+  const { searchQuery } = event.currentTarget.elements;
+
   if (!loader.classList.contains('hidden')) {
     loader.classList.add('hidden');
   }
@@ -35,13 +38,14 @@ async function handleSearch(event) {
     gallery.innerHTML = '';
   }
 
-  event.preventDefault();
-  const { searchQuery } = event.currentTarget.elements;
   try {
     page = 1;
-    const data = await getSearch(searchQuery.value, page);
+    if (searchQuery.value.trim() === '') {
+      throw 'Not valid';
+    }
+    const data = await getSearch(searchQuery.value.trim(), page);
     if (data.hits.length === 0) {
-      throw '';
+      throw 'No images';
     }
     Notify.success(`Hooray! We found ${data.totalHits} images.`);
     gallery.insertAdjacentHTML('beforeend', createMarkUp(data.hits));
@@ -49,10 +53,12 @@ async function handleSearch(event) {
     observer.observe(loader);
     lightbox.refresh();
   } catch (err) {
-    if (err === '') {
+    if (err === 'No images') {
       Notify.failure(
         'Sorry, there are no images matching your search query. Please try again.'
       );
+    } else if (err === 'Not valid') {
+      Notify.failure('Please enter a proper query');
     } else {
       Notify.failure(err.message);
     }
