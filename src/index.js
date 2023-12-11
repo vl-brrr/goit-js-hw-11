@@ -10,6 +10,7 @@ const end = document.querySelector('.load-end');
 loader.classList.add('hidden');
 end.classList.add('hidden');
 let page = 1;
+let query = '';
 
 const options = {
   root: null,
@@ -26,6 +27,7 @@ form.addEventListener('submit', handleSearch);
 async function handleSearch(event) {
   event.preventDefault();
   const { searchQuery } = event.currentTarget.elements;
+  query = searchQuery.value;
 
   if (!loader.classList.contains('hidden')) {
     loader.classList.add('hidden');
@@ -40,10 +42,10 @@ async function handleSearch(event) {
 
   try {
     page = 1;
-    if (searchQuery.value.trim() === '') {
+    if (query.trim() === '') {
       throw 'Not valid';
     }
-    const data = await getSearch(searchQuery.value.trim(), page);
+    const data = await getSearch(query.trim(), page);
     if (data.hits.length === 0) {
       throw 'No images';
     }
@@ -88,9 +90,8 @@ function handleScroll(entries, observer) {
   entries.forEach(async entry => {
     if (entry.isIntersecting) {
       page += 1;
-      const { searchQuery } = form.elements;
       try {
-        const data = await getSearch(searchQuery.value, page);
+        const data = await getSearch(query, page);
         gallery.insertAdjacentHTML('beforeend', createMarkUp(data.hits));
         lightbox.refresh();
 
